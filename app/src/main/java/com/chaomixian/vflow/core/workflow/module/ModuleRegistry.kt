@@ -13,6 +13,8 @@ import com.chaomixian.vflow.core.workflow.module.notification.*
 import com.chaomixian.vflow.core.workflow.module.shizuku.*
 import com.chaomixian.vflow.core.workflow.module.system.*
 import com.chaomixian.vflow.core.workflow.module.triggers.*
+import com.chaomixian.vflow.core.workflow.module.triggers.TimeTriggerModule as LegacyTimeTriggerModule
+import com.chaomixian.vflow.core.workflow.module.triggers.BatteryTriggerModule as LegacyBatteryTriggerModule
 import com.chaomixian.vflow.core.workflow.module.snippet.*
 import com.chaomixian.vflow.core.workflow.module.ui.blocks.*
 import com.chaomixian.vflow.core.workflow.module.ui.components.*
@@ -71,9 +73,9 @@ object ModuleRegistry {
         register(ClipboardTriggerModule(), context)
         register(KeyEventTriggerModule(), context)
         register(BackTapTriggerModule(), context)
-        register(TimeTriggerModule(), context)
+        register(LegacyTimeTriggerModule(), context)
         register(IntervalTriggerModule(), context)
-        register(BatteryTriggerModule(), context)
+        register(LegacyBatteryTriggerModule(), context)
         register(PowerTriggerModule(), context)
         register(ScreenTriggerModule(), context)
         register(WifiTriggerModule(), context)
@@ -86,6 +88,10 @@ object ModuleRegistry {
         register(LocationTriggerModule(), context)
         register(PoseTriggerModule(), context)
         register(VoiceTriggerModule(), context)
+
+        // 新版触发器模块 (core.module 包)
+        register(TimeTriggerModule(), context)
+        register(BatteryTriggerModule(), context)
 
         // 界面交互
         register(FindTextModule(), context)
@@ -103,6 +109,7 @@ object ModuleRegistry {
         register(FindImageModule(), context)
         register(OperitModule(), context)
         register(GetCurrentActivityModule(), context)
+        register(WaitForElementModule(), context)
 
         // 逻辑控制
         register(IfModule(), context)
@@ -152,6 +159,7 @@ object ModuleRegistry {
         register(ScaleImageModule(), context)
         register(RotateImageModule(), context)
         register(ApplyMaskModule(), context)
+        register(FileOpsModule(), context)
 
         // 网络
         register(GetIpAddressModule(), context)
@@ -164,6 +172,7 @@ object ModuleRegistry {
         register(FeishuSendMessageModule(), context)
         register(FeishuGetMessageHistoryModule(), context)
         register(FeishuMediaUploadModule(), context)
+        register(WebHttpRequestModule(), context)
 
         // 应用与系统
         register(DelayModule(), context)
@@ -201,6 +210,10 @@ object ModuleRegistry {
         register(DarkModeModule(), context)
         register(VibrationModule(), context)
         register(FlashlightModule(), context)
+        register(PushNotificationModule(), context)
+        register(DeviceStatusModule(), context)
+        register(AppLauncherModule(), context)
+        register(AutoScreenshotModule(), context)
 
         // Core (Beta) 模块
         // 网络控制组

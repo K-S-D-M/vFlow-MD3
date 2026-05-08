@@ -73,6 +73,8 @@ import androidx.compose.ui.unit.dp
 import com.chaomixian.vflow.R
 import com.chaomixian.vflow.ui.common.SearchBarCard
 import com.chaomixian.vflow.ui.common.SearchEmptyStateCard
+import com.chaomixian.vflow.ui.common.ThemeMode
+import com.chaomixian.vflow.ui.common.ThemeUtils
 import com.chaomixian.vflow.ui.common.matchesSearch
 import com.chaomixian.vflow.ui.common.normalizeSearchQuery
 import com.chaomixian.vflow.ui.viewmodel.SettingsUiState
@@ -83,6 +85,10 @@ data class SettingsScreenActions(
     val onSetColorfulWorkflowCardsEnabled: (Boolean) -> Unit,
     val onSetLiquidGlassNavBarEnabled: (Boolean) -> Unit,
     val onSetAppScale: (Float) -> Unit,
+    val onSetThemeMode: (ThemeMode) -> Unit,
+    val onSetEditorDefaultZoom: (Float) -> Unit,
+    val onSetAutoSaveInterval: (Int) -> Unit,
+    val onSetLogRetentionDays: (Int) -> Unit,
     val onOpenLanguageDialog: () -> Unit,
     val onOpenModuleConfig: () -> Unit,
     val onOpenModelConfig: () -> Unit,
@@ -142,8 +148,25 @@ fun SettingsScreen(
     val debuggingSectionTitle = stringResource(R.string.settings_section_debugging)
     val aboutSectionTitle = stringResource(R.string.settings_section_about)
     val experimentalSectionTitle = stringResource(R.string.settings_section_experimental)
+    val editorSectionTitle = stringResource(R.string.settings_section_editor)
     val accessibilityDisguiseTitle = stringResource(R.string.settings_switch_accessibility_disguise)
     val accessibilityDisguiseSubtitle = stringResource(R.string.settings_switch_accessibility_disguise_desc)
+
+    val themeModeTitle = stringResource(R.string.settings_theme_mode)
+    val themeModeDesc = stringResource(R.string.settings_theme_mode_desc)
+    val themeModeLightLabel = stringResource(R.string.settings_theme_mode_light)
+    val themeModeDarkLabel = stringResource(R.string.settings_theme_mode_dark)
+    val themeModeSystemLabel = stringResource(R.string.settings_theme_mode_system)
+    val editorDefaultZoomTitle = stringResource(R.string.settings_editor_default_zoom)
+    val editorDefaultZoomDesc = stringResource(R.string.settings_editor_default_zoom_desc)
+    val autoSaveIntervalTitle = stringResource(R.string.settings_auto_save_interval)
+    val autoSaveIntervalDesc = stringResource(R.string.settings_auto_save_interval_desc)
+    val autoSaveDisabledLabel = stringResource(R.string.settings_auto_save_disabled)
+    val logRetentionDaysTitle = stringResource(R.string.settings_log_retention_days)
+    val logRetentionDaysDesc = stringResource(R.string.settings_log_retention_days_desc)
+    val logRetentionForeverLabel = stringResource(R.string.settings_log_retention_forever)
+    val aboutVersionLabel = stringResource(R.string.settings_about_version)
+    val aboutLicensesLabel = stringResource(R.string.settings_about_licenses)
 
     val updateVersionLabel = uiState.updateInfo?.let {
         stringResource(R.string.settings_update_available, it.latestVersion)
@@ -247,7 +270,13 @@ fun SettingsScreen(
         colorfulCardsTitle, colorfulCardsSubtitle,
         liquidGlassTitle, liquidGlassSubtitle,
         appScaleTitle, appScaleSubtitle, appScaleValueLabel,
+        themeModeTitle, themeModeDesc, themeModeLightLabel, themeModeDarkLabel, themeModeSystemLabel,
+        editorDefaultZoomTitle, editorDefaultZoomDesc,
         themeSectionTitle
+    ).any { matchesSearch(normalizedQuery, it) }
+    val showEditorSection = listOf(
+        editorSectionTitle,
+        autoSaveIntervalTitle, autoSaveIntervalDesc
     ).any { matchesSearch(normalizedQuery, it) }
     val showGeneralSection = listOf(
         generalSectionTitle,
@@ -276,7 +305,8 @@ fun SettingsScreen(
         crashReportsTitle, crashReportsSubtitle,
         exportLogsLabel, clearLogsLabel,
         runDiagnosticLabel, keyTesterLabel,
-        coreManagementLabel, uiInspectorLabel
+        coreManagementLabel, uiInspectorLabel,
+        logRetentionDaysTitle, logRetentionDaysDesc
     ).any { matchesSearch(normalizedQuery, it) }
     val showAboutSection = matchesSearch(
         normalizedQuery,
@@ -292,7 +322,7 @@ fun SettingsScreen(
     )
     val hasSearchResults = showUpdateCard || showLanguageSection || showThemeSection ||
         showGeneralSection || showPermissionsSection || showExperimentalSection ||
-        showDebuggingSection || showAboutSection
+        showEditorSection || showDebuggingSection || showAboutSection
 
     LazyColumn(
         modifier = modifier.pointerInput(Unit) {
@@ -359,6 +389,16 @@ fun SettingsScreen(
                     checked = uiState.dynamicColorEnabled,
                     onCheckedChange = actions.onSetDynamicColorEnabled
                 )
+                ThemeModeCard(
+                    title = themeModeTitle,
+                    subtitle = themeModeDesc,
+                    lightLabel = themeModeLightLabel,
+                    darkLabel = themeModeDarkLabel,
+                    systemLabel = themeModeSystemLabel,
+                    selectedMode = uiState.themeMode,
+                    position = SettingsGroupPosition.Middle,
+                    onModeSelected = actions.onSetThemeMode
+                )
                 NativeSwitchRow(
                     title = colorfulCardsTitle,
                     subtitle = colorfulCardsSubtitle,
@@ -383,10 +423,22 @@ fun SettingsScreen(
                     subtitle = appScaleSubtitle,
                     icon = Icons.Default.Tune,
                     tone = warningTone(),
-                    position = SettingsGroupPosition.Bottom,
+                    position = SettingsGroupPosition.Middle,
                     valueLabel = appScaleValueLabel,
                     initialSliderValue = uiState.appScale * 100f,
-                    onScaleChange = actions.onSetAppScale
+                    onScaleChange = { actions.onSetAppScale(it / 100f) }
+                )
+                NativeSliderRow(
+                    title = editorDefaultZoomTitle,
+                    subtitle = editorDefaultZoomDesc,
+                    icon = Icons.Default.Tune,
+                    tone = paletteTone(),
+                    position = SettingsGroupPosition.Bottom,
+                    valueLabel = String.format("%.1fx", uiState.editorDefaultZoom),
+                    initialSliderValue = uiState.editorDefaultZoom,
+                    valueRange = 0.5f..2.0f,
+                    steps = 5,
+                    onScaleChange = actions.onSetEditorDefaultZoom
                 )
             }
         }
@@ -508,6 +560,19 @@ fun SettingsScreen(
             }
         }
 
+        if (showEditorSection) item {
+            SettingsSection(title = editorSectionTitle) {
+                AutoSaveIntervalCard(
+                    title = autoSaveIntervalTitle,
+                    subtitle = autoSaveIntervalDesc,
+                    selectedInterval = uiState.autoSaveInterval,
+                    disabledLabel = autoSaveDisabledLabel,
+                    position = SettingsGroupPosition.Single,
+                    onIntervalSelected = actions.onSetAutoSaveInterval
+                )
+            }
+        }
+
         if (showPermissionsSection) item {
             SettingsSection(title = permissionsSectionTitle) {
                 ShellModeCard(
@@ -564,6 +629,14 @@ fun SettingsScreen(
                     onCheckedChange = actions.onSetLoggingEnabled,
                     infoText = loggingInfo
                 )
+                LogRetentionDaysCard(
+                    title = logRetentionDaysTitle,
+                    subtitle = logRetentionDaysDesc,
+                    selectedDays = uiState.logRetentionDays,
+                    foreverLabel = logRetentionForeverLabel,
+                    position = SettingsGroupPosition.Middle,
+                    onDaysSelected = actions.onSetLogRetentionDays
+                )
                 NativeEntryRow(
                     title = crashReportsTitle,
                     subtitle = crashReportsSubtitle,
@@ -601,14 +674,39 @@ fun SettingsScreen(
 
         if (showAboutSection) item {
             SettingsSection(title = aboutSectionTitle) {
-                NativeEntryRow(
-                    title = aboutTitle,
-                    subtitle = aboutSubtitle,
-                    icon = Icons.Default.Info,
-                    tone = neutralTone(),
-                    position = SettingsGroupPosition.Single,
-                    onClick = actions.onOpenAbout
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = aboutVersionLabel,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = aboutSubtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        FilledTonalButton(
+                            onClick = actions.onOpenAbout,
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(text = aboutLicensesLabel)
+                        }
+                    }
+                }
             }
         }
     }
@@ -779,6 +877,8 @@ private fun NativeSliderRow(
     position: SettingsGroupPosition,
     valueLabel: String,
     initialSliderValue: Float,
+    valueRange: ClosedFloatingPointRange<Float> = 75f..125f,
+    steps: Int = 9,
     onScaleChange: (Float) -> Unit
 ) {
     var sliderValue by remember(initialSliderValue) { mutableFloatStateOf(initialSliderValue) }
@@ -803,10 +903,10 @@ private fun NativeSliderRow(
                 .padding(start = 76.dp, end = 20.dp, bottom = 12.dp),
             value = sliderValue,
             onValueChange = { sliderValue = it },
-            valueRange = 75f..125f,
-            steps = 9,
+            valueRange = valueRange,
+            steps = steps,
             onValueChangeFinished = {
-                onScaleChange(sliderValue / 100f)
+                onScaleChange(sliderValue)
             }
         )
     }
@@ -993,6 +1093,158 @@ private fun ShellModeCard(
                             Text(
                                 text = if (mode == "root") secondaryLabel else primaryLabel
                             )
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ThemeModeCard(
+    title: String,
+    subtitle: String,
+    lightLabel: String,
+    darkLabel: String,
+    systemLabel: String,
+    selectedMode: ThemeMode,
+    position: SettingsGroupPosition,
+    onModeSelected: (ThemeMode) -> Unit
+) {
+    val modes = listOf(ThemeMode.LIGHT, ThemeMode.DARK, ThemeMode.SYSTEM)
+    val labels = listOf(lightLabel, darkLabel, systemLabel)
+
+    SettingsItemSurface(position = position) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                modes.forEachIndexed { index, mode ->
+                    SegmentedButton(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedMode == mode,
+                        onClick = { onModeSelected(mode) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                        label = {
+                            Text(text = labels[index])
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AutoSaveIntervalCard(
+    title: String,
+    subtitle: String,
+    selectedInterval: Int,
+    disabledLabel: String,
+    position: SettingsGroupPosition,
+    onIntervalSelected: (Int) -> Unit
+) {
+    val intervals = listOf(5, 10, 30, 60, 0)
+    val labels = listOf("5s", "10s", "30s", "60s", disabledLabel)
+
+    SettingsItemSurface(position = position) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                intervals.forEachIndexed { index, interval ->
+                    SegmentedButton(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedInterval == interval,
+                        onClick = { onIntervalSelected(interval) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 5),
+                        label = {
+                            Text(text = labels[index])
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun LogRetentionDaysCard(
+    title: String,
+    subtitle: String,
+    selectedDays: Int,
+    foreverLabel: String,
+    position: SettingsGroupPosition,
+    onDaysSelected: (Int) -> Unit
+) {
+    val daysOptions = listOf(7, 14, 30, 90, 0)
+    val labels = listOf("7", "14", "30", "90", foreverLabel)
+
+    SettingsItemSurface(position = position) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                daysOptions.forEachIndexed { index, days ->
+                    SegmentedButton(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedDays == days,
+                        onClick = { onDaysSelected(days) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 5),
+                        label = {
+                            Text(text = labels[index])
                         }
                     )
                 }

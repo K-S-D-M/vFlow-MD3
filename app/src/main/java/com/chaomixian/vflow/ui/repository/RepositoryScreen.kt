@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,11 +19,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Download
@@ -34,16 +39,19 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -58,16 +66,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chaomixian.vflow.R
 import com.chaomixian.vflow.core.module.ActionModule
+import com.chaomixian.vflow.core.module.ModuleCategories
 import com.chaomixian.vflow.core.module.ModuleRegistry
 import com.chaomixian.vflow.core.utils.StorageManager
 import com.chaomixian.vflow.core.workflow.FolderManager
@@ -78,6 +89,7 @@ import com.chaomixian.vflow.data.repository.api.RepositoryApiClient
 import com.chaomixian.vflow.data.repository.model.RepoModule
 import com.chaomixian.vflow.data.repository.model.RepoWorkflow
 import com.chaomixian.vflow.permissions.Permission
+import com.chaomixian.vflow.ui.common.SearchBarCard
 import com.chaomixian.vflow.ui.workflow_list.WorkflowImportHelper
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -115,6 +127,25 @@ private data class LocalModuleDeletePrompt(
     val module: ActionModule,
     val dependencyNames: List<String>,
 )
+
+enum class ModuleCategoryFilter(val labelRes: Int, val categoryIds: Set<String>) {
+    ALL(R.string.filter_all, emptySet()),
+    EVENT(R.string.filter_event, setOf(ModuleCategories.TRIGGER)),
+    FLOW(R.string.filter_flow, setOf(ModuleCategories.LOGIC)),
+    ACTION(R.string.filter_action, setOf(
+        ModuleCategories.INTERACTION,
+        ModuleCategories.FILE,
+        ModuleCategories.NETWORK,
+        ModuleCategories.DEVICE,
+    )),
+    CONDITION(R.string.filter_condition, setOf(ModuleCategories.DATA));
+
+    fun matches(module: ActionModule): Boolean {
+        if (this == ALL) return true
+        val resolvedId = module.metadata.getResolvedCategoryId()
+        return categoryIds.contains(resolvedId)
+    }
+}
 
 private sealed interface ModuleInstallResult {
     data class ReadyToCommit(val pending: PendingStoreModuleInstall) : ModuleInstallResult
@@ -624,77 +655,95 @@ fun RepositoryScreen(
             runCatching { moduleDetails.getOutputs(null) }.getOrDefault(emptyList())
         }
         val paramTypeLabel = stringResource(R.string.label_param_type)
-        AlertDialog(
+        val detailSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
             onDismissRequest = { detailModule = null },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 520.dp)
-                        .verticalScroll(rememberScrollState())
+            sheetState = detailSheetState,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 520.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (moduleDetails.metadata.iconRes != 0) {
+                                moduleDetails.metadata.iconRes
+                            } else {
+                                R.drawable.rounded_circles_ext_24
+                            }
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = moduleDetails.metadata.getLocalizedName(context),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                RepositoryCategoryPill(moduleDetails.metadata.getLocalizedCategory(context))
+                Spacer(modifier = Modifier.height(16.dp))
+                DialogDetailBlock(
+                    title = stringResource(R.string.workflow_description)
                 ) {
                     Text(
-                        text = "${moduleDetails.metadata.getLocalizedName(context)} - " +
-                            stringResource(R.string.label_module_details),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = moduleDetails.metadata.getLocalizedDescription(context),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    SelectionContainer {
-                        Text(
-                            "${stringResource(R.string.label_module_id)}: ${moduleDetails.id}",
-                            modifier = Modifier.padding(top = 4.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    }
-                    DialogDetailBlock(
-                        title = stringResource(R.string.workflow_description)
-                    ) {
-                        Text(
-                            text = moduleDetails.metadata.getLocalizedDescription(context),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    DialogDetailBlock(
-                        title = stringResource(R.string.label_inputs)
-                    ) {
-                        MonospaceDetailText(
-                            text = if (inputs.isEmpty()) {
-                                stringResource(R.string.label_no_input_params)
-                            } else {
-                                inputs.mapIndexed { index, input ->
-                                    "${index + 1}. ${input.getLocalizedName(context)} (${input.id})\n" +
-                                        "   $paramTypeLabel: ${input.staticType.name}"
-                                }
-                                    .joinToString("\n\n")
-                            }
-                        )
-                    }
-                    DialogDetailBlock(
-                        title = stringResource(R.string.label_outputs)
-                    ) {
-                        MonospaceDetailText(
-                            text = if (outputs.isEmpty()) {
-                                stringResource(R.string.label_no_output_vars)
-                            } else {
-                                outputs.mapIndexed { index, output ->
-                                    "${index + 1}. ${output.getLocalizedName(context)} (${output.id})\n" +
-                                        "   $paramTypeLabel: ${output.typeName}"
-                                }
-                                    .joinToString("\n\n")
-                            }
-                        )
-                    }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { detailModule = null }) {
+                DialogDetailBlock(
+                    title = stringResource(R.string.label_inputs)
+                ) {
+                    MonospaceDetailText(
+                        text = if (inputs.isEmpty()) {
+                            stringResource(R.string.label_no_input_params)
+                        } else {
+                            inputs.mapIndexed { index, input ->
+                                "${index + 1}. ${input.getLocalizedName(context)} (${input.id})\n" +
+                                    "   $paramTypeLabel: ${input.staticType.name}"
+                            }
+                                .joinToString("\n\n")
+                        }
+                    )
+                }
+                DialogDetailBlock(
+                    title = stringResource(R.string.label_outputs)
+                ) {
+                    MonospaceDetailText(
+                        text = if (outputs.isEmpty()) {
+                            stringResource(R.string.label_no_output_vars)
+                        } else {
+                            outputs.mapIndexed { index, output ->
+                                "${index + 1}. ${output.getLocalizedName(context)} (${output.id})\n" +
+                                    "   $paramTypeLabel: ${output.typeName}"
+                            }
+                                .joinToString("\n\n")
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                FilledTonalButton(
+                    onClick = { detailModule = null },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(stringResource(R.string.button_close))
                 }
             }
-        )
+        }
     }
 
     val currentDeletePrompt = deletePrompt
@@ -834,6 +883,7 @@ private fun RepositoryModuleStoreTab(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun LocalModulesTab(
     modifier: Modifier = Modifier,
@@ -843,7 +893,26 @@ private fun LocalModulesTab(
     onOpenDetails: (ActionModule) -> Unit,
     onDelete: (ActionModule) -> Unit,
 ) {
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val pullToRefreshState = rememberPullToRefreshState()
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedCategory by rememberSaveable { mutableStateOf(ModuleCategoryFilter.ALL) }
+
+    val allModules = remember(state) { state.userModules + state.builtInModules }
+
+    val filteredModules = remember(allModules, searchQuery, selectedCategory) {
+        allModules
+            .filter { selectedCategory.matches(it) }
+            .filter { module ->
+                if (searchQuery.isBlank()) true
+                else module.metadata.getLocalizedName(context)
+                    .contains(searchQuery, ignoreCase = true) ||
+                    module.metadata.getLocalizedDescription(context)
+                        .contains(searchQuery, ignoreCase = true)
+            }
+    }
+
     PullToRefreshBox(
         modifier = modifier.fillMaxSize(),
         isRefreshing = false,
@@ -866,44 +935,66 @@ private fun LocalModulesTab(
             return@PullToRefreshBox
         }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = contentPadding,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            if (state.userModules.isNotEmpty()) {
-                item {
-                    LocalModuleSectionHeader(
-                        title = stringResource(
-                            R.string.header_user_modules,
-                            state.userModules.size
-                        )
-                    )
-                }
-                items(state.userModules, key = { it.id }) { module ->
-                    LocalModuleCard(
-                        module = module,
-                        onOpenDetails = { onOpenDetails(module) },
-                        onDelete = { onDelete(module) },
+        Column(modifier = Modifier.fillMaxSize()) {
+            SearchBarCard(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholderRes = R.string.module_search_placeholder,
+                clearContentDescriptionRes = R.string.content_desc_close,
+                onClearFocus = { focusManager.clearFocus() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ModuleCategoryFilter.entries.forEach { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = {
+                            selectedCategory = category
+                            focusManager.clearFocus()
+                        },
+                        label = { Text(text = stringResource(category.labelRes)) }
                     )
                 }
             }
 
-            if (state.builtInModules.isNotEmpty()) {
-                item {
-                    LocalModuleSectionHeader(
-                        title = stringResource(
-                            R.string.header_builtin_modules,
-                            state.builtInModules.size
-                        )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (filteredModules.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.text_no_modules),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                items(state.builtInModules, key = { it.id }) { module ->
-                    LocalModuleCard(
-                        module = module,
-                        onOpenDetails = { onOpenDetails(module) },
-                        onDelete = { onDelete(module) },
-                    )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = contentPadding,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(filteredModules, key = { it.id }) { module ->
+                        ModuleGridCard(
+                            module = module,
+                            onClick = { onOpenDetails(module) },
+                        )
+                    }
                 }
             }
         }
@@ -1134,6 +1225,66 @@ private fun LocalModuleCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ModuleGridCard(
+    module: ActionModule,
+    onClick: () -> Unit,
+) {
+    val context = LocalContext.current
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(2.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        onClick = onClick,
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (module.metadata.iconRes != 0) {
+                            module.metadata.iconRes
+                        } else {
+                            R.drawable.rounded_circles_ext_24
+                        }
+                    ),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(0.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = module.metadata.getLocalizedName(context),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = module.metadata.getLocalizedDescription(context),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

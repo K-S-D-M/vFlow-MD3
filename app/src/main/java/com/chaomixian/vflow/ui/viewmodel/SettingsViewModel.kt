@@ -12,6 +12,7 @@ import com.chaomixian.vflow.data.update.UpdateInfo
 import com.chaomixian.vflow.services.ShellManager
 import com.chaomixian.vflow.ui.common.AppearanceManager
 import com.chaomixian.vflow.ui.common.OverlayUiPreferences
+import com.chaomixian.vflow.ui.common.ThemeMode
 import com.chaomixian.vflow.ui.common.ThemeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +40,11 @@ data class SettingsUiState(
     val isShizukuActive: Boolean = false,
     val isRootAvailable: Boolean = false,
     val apiRunning: Boolean = false,
-    val accessibilityDisguiseEnabled: Boolean = false
+    val accessibilityDisguiseEnabled: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val editorDefaultZoom: Float = 1.0f,
+    val autoSaveInterval: Int = 10,
+    val logRetentionDays: Int = 30
 )
 
 class SettingsViewModel : ViewModel() {
@@ -81,7 +86,11 @@ class SettingsViewModel : ViewModel() {
                 loggingEnabled = DebugLogger.isLoggingEnabled(),
                 isShizukuActive = ShellManager.isShizukuActive(context),
                 accessibilityDisguiseEnabled = prefs.getBoolean(KEY_ACCESSIBILITY_DISGUISE, false),
-                isRootAvailable = ShellManager.isRootAvailable()
+                isRootAvailable = ShellManager.isRootAvailable(),
+                themeMode = ThemeUtils.getThemeMode(context),
+                editorDefaultZoom = prefs.getFloat(KEY_EDITOR_DEFAULT_ZOOM, 1.0f),
+                autoSaveInterval = prefs.getInt(KEY_AUTO_SAVE_INTERVAL, 10),
+                logRetentionDays = prefs.getInt(KEY_LOG_RETENTION_DAYS, 30)
             )
         }
 
@@ -195,6 +204,27 @@ class SettingsViewModel : ViewModel() {
         _uiState.update { it.copy(accessibilityDisguiseEnabled = enabled) }
     }
 
+    fun setThemeMode(context: Context, mode: ThemeMode) = editPref(context) {
+        putString(ThemeUtils.KEY_THEME_MODE, mode.name)
+        _uiState.update { it.copy(themeMode = mode) }
+    }
+
+    fun setEditorDefaultZoom(context: Context, zoom: Float) = editPref(context) {
+        val clamped = zoom.coerceIn(0.5f, 2.0f)
+        putFloat(KEY_EDITOR_DEFAULT_ZOOM, clamped)
+        _uiState.update { it.copy(editorDefaultZoom = clamped) }
+    }
+
+    fun setAutoSaveInterval(context: Context, interval: Int) = editPref(context) {
+        putInt(KEY_AUTO_SAVE_INTERVAL, interval)
+        _uiState.update { it.copy(autoSaveInterval = interval) }
+    }
+
+    fun setLogRetentionDays(context: Context, days: Int) = editPref(context) {
+        putInt(KEY_LOG_RETENTION_DAYS, days)
+        _uiState.update { it.copy(logRetentionDays = days) }
+    }
+
     private inline fun editPref(
         context: Context,
         crossinline block: android.content.SharedPreferences.Editor.() -> Unit
@@ -219,5 +249,8 @@ class SettingsViewModel : ViewModel() {
         private const val KEY_ENABLE_TYPE_FILTER = "enableTypeFilter"
         private const val KEY_HIDE_FROM_RECENTS = "hideFromRecents"
         private const val KEY_DEFAULT_SHELL_MODE = "default_shell_mode"
+        private const val KEY_EDITOR_DEFAULT_ZOOM = "editorDefaultZoom"
+        private const val KEY_AUTO_SAVE_INTERVAL = "autoSaveInterval"
+        private const val KEY_LOG_RETENTION_DAYS = "logRetentionDays"
     }
 }

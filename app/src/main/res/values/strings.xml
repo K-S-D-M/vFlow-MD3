@@ -8,6 +8,7 @@
     <string name="title_modules">模块</string>
     <string name="title_chat">对话</string>
     <string name="title_repository">仓库</string>
+    <string name="title_templates">模板市场</string>
     <string name="title_settings">设置</string>
     <string name="chat_placeholder_message">AI 对话功能即将加入。</string>
     <string name="chat_prompt_hint">输入你的问题</string>
@@ -164,6 +165,22 @@
     <string name="settings_section_permissions_desc">查看和管理应用运行所需的所有权限。</string>
     <string name="settings_permission_guardian">权限守护</string>
     <string name="settings_permission_guardian_desc">自动授权并守护关键权限</string>
+    <string name="settings_theme_mode">主题模式</string>
+    <string name="settings_theme_mode_desc">选择浅色、深色或跟随系统主题</string>
+    <string name="settings_theme_mode_light">浅色</string>
+    <string name="settings_theme_mode_dark">深色</string>
+    <string name="settings_theme_mode_system">跟随系统</string>
+    <string name="settings_editor_default_zoom">编辑器默认缩放</string>
+    <string name="settings_editor_default_zoom_desc">设置工作流编辑器的默认缩放比例</string>
+    <string name="settings_section_editor">编辑器</string>
+    <string name="settings_auto_save_interval">自动保存间隔</string>
+    <string name="settings_auto_save_interval_desc">工作流更改的自动保存频率</string>
+    <string name="settings_auto_save_disabled">禁用</string>
+    <string name="settings_log_retention_days">日志保留天数</string>
+    <string name="settings_log_retention_days_desc">自动删除超过此天数的日志</string>
+    <string name="settings_log_retention_forever">永久</string>
+    <string name="settings_about_version">vFlow-MD3 v1.0.0-alpha</string>
+    <string name="settings_about_licenses">开源许可</string>
     <string name="settings_section_about">关于</string>
     <string name="settings_section_about_desc">查看应用版本、开源许可等信息。</string>
 
@@ -1062,6 +1079,12 @@
     <string name="text_not_available">当前不可用</string>
     <string name="title_core_status">vFlow Core 状态</string>
     <string name="content_desc_close">关闭</string>
+    <string name="module_search_placeholder">搜索模块</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_event">事件</string>
+    <string name="filter_flow">流程</string>
+    <string name="filter_action">动作</string>
+    <string name="filter_condition">条件</string>
     <string name="content_desc_expand_panel">展开面板</string>
     <string name="content_desc_minimize">最小化</string>
 

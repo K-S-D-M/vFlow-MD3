@@ -164,6 +164,22 @@
     <string name="settings_section_permissions_desc">View and manage all permissions required by the app.</string>
     <string name="settings_permission_guardian">Permission Guardian</string>
     <string name="settings_permission_guardian_desc">Auto-grant and guard key permissions</string>
+    <string name="settings_theme_mode">Theme Mode</string>
+    <string name="settings_theme_mode_desc">Choose between light, dark, or system theme</string>
+    <string name="settings_theme_mode_light">Light</string>
+    <string name="settings_theme_mode_dark">Dark</string>
+    <string name="settings_theme_mode_system">System</string>
+    <string name="settings_editor_default_zoom">Editor Default Zoom</string>
+    <string name="settings_editor_default_zoom_desc">Set the default zoom level for the workflow editor</string>
+    <string name="settings_section_editor">Editor</string>
+    <string name="settings_auto_save_interval">Auto Save Interval</string>
+    <string name="settings_auto_save_interval_desc">How often to auto-save workflow changes</string>
+    <string name="settings_auto_save_disabled">Disabled</string>
+    <string name="settings_log_retention_days">Log Retention Days</string>
+    <string name="settings_log_retention_days_desc">Automatically delete logs older than this</string>
+    <string name="settings_log_retention_forever">Forever</string>
+    <string name="settings_about_version">vFlow-MD3 v1.0.0-alpha</string>
+    <string name="settings_about_licenses">Open Source Licenses</string>
     <string name="settings_section_about">About</string>
     <string name="settings_section_about_desc">View app version, open source licenses, and developer info.</string>
 
@@ -1062,6 +1078,12 @@
     <string name="text_not_available">Currently unavailable</string>
     <string name="title_core_status">vFlow Core Status</string>
     <string name="content_desc_close">Close</string>
+    <string name="module_search_placeholder">Search modules</string>
+    <string name="filter_all">All</string>
+    <string name="filter_event">Event</string>
+    <string name="filter_flow">Flow</string>
+    <string name="filter_action">Action</string>
+    <string name="filter_condition">Condition</string>
     <string name="content_desc_expand_panel">Expand panel</string>
     <string name="content_desc_minimize">Minimize</string>
 

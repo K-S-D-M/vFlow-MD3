@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="false"
     android:focusableInTouchMode="true"
     tools:context=".ui.workflow_editor.WorkflowEditorActivity">
 
@@ -56,19 +57,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:background="@drawable/bg_editor_canvas_grid"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_action_steps"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingTop="16dp"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="112dp"
-            tools:itemCount="3"
-            tools:listitem="@layout/item_action_step" />
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_action_steps"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="16dp"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="112dp"
+                tools:itemCount="3"
+                tools:listitem="@layout/item_action_step" />
+
+            <TextView
+                android:id="@+id/text_zoom_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="120dp"
+                android:background="#B31E1E1E"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="100%"
+                android:textColor="#B0BEC5"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:visibility="visible" />
+
+        </FrameLayout>
 
     </LinearLayout>
 

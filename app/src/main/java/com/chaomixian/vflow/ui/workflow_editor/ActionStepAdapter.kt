@@ -159,6 +159,15 @@ class ActionStepAdapter(
         }
         categoryColorBar.background = drawable
 
+        val borderColor = when (module.metadata.getResolvedCategoryId()) {
+            "trigger" -> ContextCompat.getColor(context, R.color.node_event_border)
+            "logic" -> ContextCompat.getColor(context, R.color.node_flow_control_border)
+            "interaction", "ui" -> ContextCompat.getColor(context, R.color.node_action_border)
+            else -> ContextCompat.getColor(context, R.color.node_condition_border)
+        }
+        stepCardView.strokeColor = borderColor
+        stepCardView.strokeWidth = (2 * context.resources.displayMetrics.density).toInt()
+
         val isActionStep = prefixText != null
         val isDisabled = if (isActionStep) BlockStructureHelper.isStepEffectivelyDisabled(actionSteps, actualPosition) else step.isDisabled
         val cardAlpha = if (isDisabled) 0.52f else 1f
@@ -273,6 +282,7 @@ class ActionStepAdapter(
         val textView = TextView(context).apply {
             text = summary
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
+            setTypeface(typeface, Typeface.BOLD)
             movementMethod = LinkMovementMethod.getInstance()
             highlightColor = Color.TRANSPARENT
             includeFontPadding = false

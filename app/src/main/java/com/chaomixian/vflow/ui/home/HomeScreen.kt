@@ -309,14 +309,41 @@ fun HomeScreen(
 
             if (uiState.recentLogs.isNotEmpty()) {
                 item {
-                    SectionCard(
-                        title = stringResource(R.string.home_recent_logs),
-                        onClick = { logSheetVisible = true },
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                     ) {
-                        RecentLogsList(
-                            logs = uiState.recentLogs,
-                            onShowDetail = { log -> selectedLog = log }
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.home_recent_logs),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "查看全部日志",
+                                    modifier = Modifier.clickable {
+                                        context.toast("查看全部日志")
+                                    },
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            RecentLogsList(
+                                logs = uiState.recentLogs,
+                                onShowDetail = { log -> selectedLog = log }
+                            )
+                        }
                     }
                 }
             }

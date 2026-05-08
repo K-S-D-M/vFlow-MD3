@@ -36,6 +36,7 @@ import com.chaomixian.vflow.services.TriggerService
 import com.chaomixian.vflow.services.UiInspectorService
 import com.chaomixian.vflow.ui.changelog.ChangelogActivity
 import com.chaomixian.vflow.ui.common.AppearanceManager
+import com.chaomixian.vflow.ui.common.ThemeMode
 import com.chaomixian.vflow.ui.main.MainActivity
 import com.chaomixian.vflow.ui.viewmodel.SettingsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -138,6 +139,19 @@ fun SettingsRoute(
                     settingsViewModel.setAppScale(context, clampedScale)
                     activity.recreate()
                 }
+            },
+            onSetThemeMode = { mode: ThemeMode ->
+                settingsViewModel.setThemeMode(context, mode)
+                activity.recreate()
+            },
+            onSetEditorDefaultZoom = { zoom ->
+                settingsViewModel.setEditorDefaultZoom(context, zoom)
+            },
+            onSetAutoSaveInterval = { interval ->
+                settingsViewModel.setAutoSaveInterval(context, interval)
+            },
+            onSetLogRetentionDays = { days ->
+                settingsViewModel.setLogRetentionDays(context, days)
             },
             onOpenLanguageDialog = {
                 showLanguageDialog(context = context, activity = activity)

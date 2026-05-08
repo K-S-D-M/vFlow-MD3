@@ -83,6 +83,7 @@ class WorkflowEditorActivity : BaseActivity() {
     private lateinit var executeButton: FloatingActionButton
     private lateinit var editorMoreButton: ImageButton
     private lateinit var recyclerView: RecyclerView
+    private lateinit var zoomLevelText: TextView
     private val gson = Gson()
     private val delayedExecuteHandler = Handler(Looper.getMainLooper())
     private val undoStack = java.util.ArrayDeque<EditorSnapshot>()
@@ -216,6 +217,7 @@ class WorkflowEditorActivity : BaseActivity() {
         undoButton = findViewById(R.id.button_undo_edit)
         executeButton = findViewById(R.id.button_execute_workflow)
         recyclerView = findViewById(R.id.recycler_view_action_steps)
+        zoomLevelText = findViewById(R.id.text_zoom_level)
         configureExecuteButtonShadow()
     }
 
@@ -965,6 +967,7 @@ class WorkflowEditorActivity : BaseActivity() {
             layoutManager = LinearLayoutManager(this@WorkflowEditorActivity)
             adapter = actionStepAdapter
         }
+        zoomLevelText.text = "100%"
     }
 
     /**

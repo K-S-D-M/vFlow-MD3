@@ -87,6 +87,7 @@ import com.chaomixian.vflow.ui.main.navigation.MainRoute
 import com.chaomixian.vflow.ui.repository.RepositoryScreen
 import com.chaomixian.vflow.ui.settings.ModelConfigActivity
 import com.chaomixian.vflow.ui.settings.SettingsRoute
+import com.chaomixian.vflow.ui.template.TemplateMarketScreen
 import com.chaomixian.vflow.ui.workflow_list.WorkflowListRoute
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -109,6 +110,7 @@ internal enum class MainTopLevelTab(
     WORKFLOWS("main_tab_workflows", R.string.title_workflows, R.drawable.rounded_dashboard_fill_24, R.drawable.rounded_dashboard_24),
     CHAT("main_tab_chat", R.string.title_chat, R.drawable.rounded_star_shine_fill_24, R.drawable.rounded_star_shine_24),
     REPOSITORY("main_tab_repository", R.string.title_repository, R.drawable.rounded_sdk_fill_24, R.drawable.rounded_sdk_24),
+    TEMPLATES("main_tab_templates", R.string.title_templates, R.drawable.rounded_extension_fill_24, R.drawable.rounded_extension_24),
     SETTINGS("main_tab_settings", R.string.title_settings, R.drawable.rounded_settings_fill_24, R.drawable.rounded_settings_24);
 }
 
@@ -912,6 +914,17 @@ private fun MainContentPager(
                 bottomContentPadding = innerPadding.calculateBottomPadding(),
                 isActive = selectedPage == page,
             )
+
+            MainTopLevelTab.TEMPLATES -> {
+                val templateContext = LocalContext.current
+                com.chaomixian.vflow.ui.template.TemplateMarketScreen(
+                    onImportTemplate = { template ->
+                        com.chaomixian.vflow.core.locale.toast(templateContext, template.name)
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    bottomContentPadding = innerPadding.calculateBottomPadding(),
+                )
+            }
 
             MainTopLevelTab.CHAT -> ChatScreen(
                 modifier = Modifier.fillMaxSize(),
