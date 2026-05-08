@@ -74,6 +74,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.chaomixian.vflow.R
+import com.chaomixian.vflow.core.locale.toast
 import com.chaomixian.vflow.ui.chat.ChatConversation
 import com.chaomixian.vflow.ui.chat.ChatProvider
 import com.chaomixian.vflow.ui.chat.ChatScreen
@@ -919,7 +920,7 @@ private fun MainContentPager(
                 val templateContext = LocalContext.current
                 com.chaomixian.vflow.ui.template.TemplateMarketScreen(
                     onImportTemplate = { template ->
-                        com.chaomixian.vflow.core.locale.toast(templateContext, template.name)
+                        templateContext.toast(template.name)
                     },
                     modifier = Modifier.fillMaxSize(),
                     bottomContentPadding = innerPadding.calculateBottomPadding(),

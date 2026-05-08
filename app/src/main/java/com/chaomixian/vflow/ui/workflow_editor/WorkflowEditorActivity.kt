@@ -21,6 +21,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import com.chaomixian.vflow.core.locale.toast
 import androidx.activity.OnBackPressedCallback
@@ -217,7 +218,7 @@ class WorkflowEditorActivity : BaseActivity() {
         undoButton = findViewById(R.id.button_undo_edit)
         executeButton = findViewById(R.id.button_execute_workflow)
         recyclerView = findViewById(R.id.recycler_view_action_steps)
-        zoomLevelText = findViewById(R.id.text_zoom_level)
+        zoomLevelText = findViewById<TextView>(R.id.text_zoom_level)
         configureExecuteButtonShadow()
     }
 
