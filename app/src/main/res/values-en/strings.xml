@@ -448,6 +448,12 @@
     <string name="editor_toast_input_definition_not_found">Cannot find input definition: %s</string>
     <string name="editor_toast_trigger_cannot_duplicate">Trigger cannot be duplicated</string>
     <string name="editor_toast_steps_duplicated">Duplicated %d steps</string>
+    <string name="editor_toast_steps_copied_to_clipboard">Copied %d step(s) to clipboard</string>
+    <string name="editor_toast_steps_pasted">Pasted %d step(s)</string>
+    <string name="editor_toast_clipboard_empty">Clipboard is empty</string>
+    <string name="editor_paste_steps">Paste Steps</string>
+    <string name="desc_copy_to_clipboard_action">Copy to clipboard</string>
+    <string name="desc_paste_from_clipboard_action">Paste from clipboard</string>
     <string name="editor_toast_step_enabled">Step enabled</string>
     <string name="editor_toast_step_disabled">Step disabled</string>
     <string name="editor_toast_enable_parent_block_first">Enable the parent block first</string>

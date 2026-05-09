@@ -314,6 +314,7 @@ class WorkflowEditorActivity : BaseActivity() {
             showActionPicker(isTriggerPicker = false)
         }
         findViewById<Button>(R.id.button_save_workflow).setOnClickListener { saveWorkflow(false) }
+        findViewById<Button>(R.id.button_paste_steps).setOnClickListener { pasteStepsFromClipboard() }
         executeButton.setOnClickListener { handleExecuteButtonClick() }
         executeButton.setOnLongClickListener { handleExecuteButtonLongClick() }
         editorMoreButton.setOnClickListener { showEditorMoreOptionsSheet() }
@@ -954,6 +955,9 @@ class WorkflowEditorActivity : BaseActivity() {
             onInsertBelowClick = { position ->
                 showActionPickerAtPosition(position + 1)
             },
+            onCopyToClipboardClick = { position ->
+                copyStepsToClipboard(position)
+            },
             onTriggerParameterPillClick = { position, parameterId ->
                 handleTriggerParameterPillClick(position, parameterId)
             },
@@ -977,16 +981,12 @@ class WorkflowEditorActivity : BaseActivity() {
     private fun duplicateStepOrBlock(position: Int) {
         if (position !in actionSteps.indices) return
 
-        // 使用现有的逻辑找到块的范围
         val (blockStart, blockEnd) = BlockStructureHelper.findBlockRange(actionSteps, position)
 
-        // 创建副本列表
         val stepsToDuplicate = actionSteps.subList(blockStart, blockEnd + 1).map { step ->
-            // 必须为副本生成新的 UUID，否则会导致变量引用混乱和 DiffUtil 错误
             step.copy(id = UUID.randomUUID().toString())
         }
 
-        // 插入到原块的后面
         val insertPosition = blockEnd + 1
         pushUndoSnapshot()
         actionSteps.addAll(insertPosition, stepsToDuplicate)
@@ -994,8 +994,38 @@ class WorkflowEditorActivity : BaseActivity() {
         recalculateAndNotify()
         toast(getString(R.string.editor_toast_steps_duplicated, stepsToDuplicate.size))
 
-        // 滚动到新复制的位置
         recyclerView.smoothScrollToPosition(insertPosition)
+    }
+
+    private fun copyStepsToClipboard(position: Int) {
+        if (position !in actionSteps.indices) return
+
+        val (blockStart, blockEnd) = BlockStructureHelper.findBlockRange(actionSteps, position)
+
+        val stepsToCopy = actionSteps.subList(blockStart, blockEnd + 1).map { step ->
+            step.copy(
+                parameters = deepCopyParameters(step.parameters)
+            )
+        }
+
+        StepClipboard.copy(stepsToCopy, currentWorkflow?.id)
+        toast(getString(R.string.editor_toast_steps_copied_to_clipboard, stepsToCopy.size))
+    }
+
+    private fun pasteStepsFromClipboard() {
+        if (!StepClipboard.hasContent()) {
+            toast(R.string.editor_toast_clipboard_empty)
+            return
+        }
+
+        val pastedSteps = StepClipboard.paste()
+        pushUndoSnapshot()
+        actionSteps.addAll(pastedSteps)
+
+        recalculateAndNotify()
+        toast(getString(R.string.editor_toast_steps_pasted, pastedSteps.size))
+
+        recyclerView.smoothScrollToPosition(actionSteps.size)
     }
 
     private fun toggleStepEnabled(position: Int) {

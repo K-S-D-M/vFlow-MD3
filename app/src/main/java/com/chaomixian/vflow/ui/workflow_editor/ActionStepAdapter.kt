@@ -51,6 +51,7 @@ class ActionStepAdapter(
     private val onToggleEnabledClick: (position: Int) -> Unit,
     private val onRestoreBlockClick: (position: Int) -> Unit,
     private val onInsertBelowClick: (position: Int) -> Unit,
+    private val onCopyToClipboardClick: (position: Int) -> Unit,
     private val onTriggerParameterPillClick: (position: Int, parameterId: String) -> Unit = { _, _ -> },
     private val onParameterPillClick: (position: Int, parameterId: String) -> Unit,
     private val onStartActivityForResult: (position: Int, Intent, (resultCode: Int, data: Intent?) -> Unit) -> Unit
@@ -447,6 +448,7 @@ class ActionStepAdapter(
             val restoreButton: ImageButton = popupView.findViewById(R.id.button_restore_block_action)
             val insertBelowButton: ImageButton = popupView.findViewById(R.id.button_insert_below_action)
             val duplicateButton: ImageButton = popupView.findViewById(R.id.button_duplicate_action)
+            val copyToClipboardButton: ImageButton = popupView.findViewById(R.id.button_copy_to_clipboard_action)
             val deleteButton: ImageButton = popupView.findViewById(R.id.button_delete_action)
 
             val secondaryContainer = MaterialColors.getColor(anchor, com.google.android.material.R.attr.colorSecondaryContainer)
@@ -493,6 +495,12 @@ class ActionStepAdapter(
             duplicateButton.visibility = if (canDuplicate) View.VISIBLE else View.GONE
 
             tintPopupButton(
+                button = copyToClipboardButton,
+                backgroundColor = primaryContainer,
+                iconColor = onPrimaryContainer
+            )
+
+            tintPopupButton(
                 button = deleteButton,
                 backgroundColor = errorContainer,
                 iconColor = onErrorContainer
@@ -536,6 +544,12 @@ class ActionStepAdapter(
                 if (canDuplicate && bindingAdapterPosition != RecyclerView.NO_POSITION) {
                     popupWindow.dismiss()
                     onDuplicateClick(actualPosition)
+                }
+            }
+            copyToClipboardButton.setOnClickListener {
+                if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                    popupWindow.dismiss()
+                    onCopyToClipboardClick(actualPosition)
                 }
             }
             deleteButton.setOnClickListener {

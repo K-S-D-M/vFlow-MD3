@@ -66,6 +66,16 @@
                 app:tint="?attr/colorOnTertiaryContainer" />
 
             <ImageButton
+                android:id="@+id/button_copy_to_clipboard_action"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_step_popup_action_button"
+                android:contentDescription="@string/desc_copy_to_clipboard_action"
+                android:src="@drawable/rounded_content_paste_24"
+                app:tint="?attr/colorOnPrimaryContainer" />
+
+            <ImageButton
                 android:id="@+id/button_delete_action"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

@@ -19,16 +19,93 @@
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen?style=flat-square)](https://android-arsenal.com/api?level=21)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-blue?style=flat-square&logo=kotlin)](https://kotlinlang.org)
 
-**vFlow** 是一款为 Android 平台设计的、强大且高度可扩展的自动化工具。它允许你通过图形化界面，将一系列“动作模块”自由组合成强大的“工作流”，从而自动完成各种日常的、重复性的屏幕操作任务。
+**vFlow** 是一款为 Android 平台设计的、强大且高度可扩展的自动化工具。它允许你通过图形化界面，将一系列"动作模块"自由组合成强大的"工作流"，从而自动完成各种日常的、重复性的屏幕操作任务。
 
 > [!WARNING]
 > **免责声明**: 使用本软件即表示您已充分理解并接受所有条款。本软件涉及自动化操作、Root权限执行等高风险功能，可能导致设备损坏、数据丢失、账号封禁等风险。**所有风险由用户自行承担，开发者不承担任何责任。** 请在使用前仔细阅读 [完整免责声明](DISCLAIMER.md)。
 
 ## ✨ 项目简介
 
-**vFlow 的核心设计理念** 是将复杂的自动化逻辑分解为一个个独立、可复用、易于理解的模块。无论是简单的“每日签到”，还是包含复杂条件判断和循环的“自动化测试流程”，vFlow 都旨在提供一个直观、灵活且强大的平台。
+**vFlow 的核心设计理念** 是将复杂的自动化逻辑分解为一个个独立、可复用、易于理解的模块。无论是简单的"每日签到"，还是包含复杂条件判断和循环的"自动化测试流程"，vFlow 都旨在提供一个直观、灵活且强大的平台。
 
 项目完全采用 Kotlin 编写，并遵循现代 Android 开发实践。其核心架构（模块注册表、动态 UI 生成器、类型安全的执行上下文）被精心设计，不仅保证了当前功能的稳定性，也为未来添加更多、更强大的自动化模块提供了无限可能。无论你是希望解放双手的普通用户，还是寻求灵感和实践的开发者，vFlow 都欢迎你的探索和贡献。
+
+## 🎨 vFlow-MD3 改动说明
+
+本项目基于 [vFlow 原版](https://github.com/ChaoMixian/vFlow) 进行二次开发，主要改动如下：
+
+### UI 主题重构 (Material Design 3)
+
+- **主色调更换为 #FB7299 (Bilibili Pink)**，全面适配 Material Design 3 色彩系统
+- **新增深色主题 / 浅色主题 / 跟随系统** 三种主题模式，可在设置页面切换
+- **支持 Monet 动态取色**（Android 12+），自动从壁纸提取主题色
+- 修改文件：`ThemeUtils.kt`、`VFlowTheme.kt`、`colors.xml`、`colors.xml (night)`
+
+### 首页与工作流列表
+
+- **工作流列表新增双列网格布局**，支持列表/网格视图切换
+- 新增 `WorkflowGridCard` 组件，展示工作流卡片缩略信息
+- **首页新增"查看全部日志"按钮**，快速跳转执行日志页面
+- 修改文件：`WorkflowListScreen.kt`、`HomeScreen.kt`
+
+### 工作流编辑器
+
+- **步骤卡片新增分类彩色边框**：触发器(蓝)、交互(橙)、逻辑(紫)、条件(绿)
+- **步骤标题加粗显示**，提升可读性
+- **编辑器画布新增网格背景**
+- **新增缩放级别指示器**，显示当前画布缩放比例
+- **新增跨工作流复制粘贴步骤功能**：可将步骤复制到全局剪贴板，在其他工作流中粘贴，粘贴时自动生成新 UUID 避免冲突
+- 修改文件：`WorkflowEditorActivity.kt`、`ActionStepAdapter.kt`、`StepClipboard.kt`（新增）、`popup_step_actions.xml`、`activity_workflow_editor.xml`
+
+### 模块管理器
+
+- **新增双列网格布局**，模块以卡片形式展示
+- **新增分类筛选标签栏**，可按触发器、交互、逻辑等分类过滤
+- **新增底部弹窗详情页**，点击模块卡片查看完整信息
+- 修改文件：`RepositoryScreen.kt`
+
+### 设置页面
+
+- **设置项改为卡片分组布局**，视觉层次更清晰
+- **新增主题模式选择**（浅色/深色/跟随系统）
+- **新增编辑器缩放比例设置**
+- **新增自动保存开关**
+- **新增日志保留天数设置**
+- **新增关于信息区域**
+- 修改文件：`SettingsScreen.kt`、`SettingsViewModel.kt`、`SettingsRoute.kt`
+
+### 新增页面
+
+- **模板市场页面**：提供 8 个预置工作流模板，可一键导入使用
+- **执行日志页面**：查看工作流执行历史记录
+- 新增文件：`TemplateMarketScreen.kt`、`TemplateModels.kt`、`ExecutionLogScreen.kt`
+
+### 新增自动化模块 (9个)
+
+| 模块 | 类别 | 功能 |
+|------|------|------|
+| WaitForElementModule | 交互 | 等待界面元素出现 |
+| FileOpsModule | 交互 | 文件操作（复制/移动/删除/重命名） |
+| PushNotificationModule | 交互 | 发送通知 |
+| DeviceStatusModule | 交互 | 获取设备状态信息 |
+| AppLauncherModule | 交互 | 启动指定应用 |
+| AutoScreenshotModule | 交互 | 自动截屏 |
+| WebHttpRequestModule | 交互 | 发送 HTTP 请求 |
+| TimeTriggerModule | 触发器 | 定时触发工作流 |
+| BatteryTriggerModule | 触发器 | 电量变化触发工作流 |
+
+- 新增文件：`WaitForElementModule.kt`、`FileOpsModule.kt`、`PushNotificationModule.kt`、`DeviceStatusModule.kt`、`AppLauncherModule.kt`、`AutoScreenshotModule.kt`、`WebHttpRequestModule.kt`、`TimeTriggerModule.kt`、`BatteryTriggerModule.kt`
+- 修改文件：`ModuleRegistry.kt`（注册所有新模块）
+
+### 导航结构
+
+- **底部导航新增"模板"标签页**，与首页、工作流列表、模块管理器、设置并列
+- 修改文件：`MainComposeShell.kt`
+
+### CI/CD
+
+- **新增 GitHub Actions 自动构建流程**，自动编译 APK 并上传至 Release
+- 新增文件：`.github/workflows/build-release.yml`
 
 ## 📸 应用截图
 

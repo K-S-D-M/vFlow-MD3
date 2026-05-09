@@ -449,6 +449,12 @@
     <string name="editor_toast_input_definition_not_found">无法找到输入定义：%s</string>
     <string name="editor_toast_trigger_cannot_duplicate">触发器无法复制</string>
     <string name="editor_toast_steps_duplicated">已复制 %d 个步骤</string>
+    <string name="editor_toast_steps_copied_to_clipboard">已复制 %d 个步骤到剪贴板</string>
+    <string name="editor_toast_steps_pasted">已粘贴 %d 个步骤</string>
+    <string name="editor_toast_clipboard_empty">剪贴板为空</string>
+    <string name="editor_paste_steps">粘贴步骤</string>
+    <string name="desc_copy_to_clipboard_action">复制到剪贴板</string>
+    <string name="desc_paste_from_clipboard_action">从剪贴板粘贴</string>
     <string name="editor_toast_step_enabled">已启用该步骤</string>
     <string name="editor_toast_step_disabled">已禁用该步骤</string>
     <string name="editor_toast_enable_parent_block_first">请先启用父块</string>

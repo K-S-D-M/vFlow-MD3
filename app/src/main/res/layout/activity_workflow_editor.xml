@@ -153,6 +153,16 @@
                     app:icon="@drawable/rounded_add_24"
                     app:layout_overflowIcon="@drawable/rounded_add_24"
                     app:layout_overflowText="@string/workflow_editor_add_action" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_paste_steps"
+                    style="@style/Widget.Material3.FloatingToolbar.IconButton.Vibrant"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/editor_paste_steps"
+                    app:icon="@drawable/rounded_content_paste_24"
+                    app:layout_overflowIcon="@drawable/rounded_content_paste_24"
+                    app:layout_overflowText="@string/editor_paste_steps" />
             </com.google.android.material.overflow.OverflowLinearLayout>
 
         </com.google.android.material.floatingtoolbar.FloatingToolbarLayout>
