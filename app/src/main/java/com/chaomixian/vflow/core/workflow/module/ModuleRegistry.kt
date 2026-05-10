@@ -22,7 +22,7 @@ import com.chaomixian.vflow.core.workflow.module.core.*
 
 object ModuleRegistry {
     private val modules = mutableMapOf<String, ActionModule>()
-    private var isCoreInitialized = false // 这里的Core是指内建额度模块
+    private var isCoreInitialized = false
 
     fun register(module: ActionModule, context: Context? = null) {
         if (modules.containsKey(module.id)) {
@@ -30,7 +30,6 @@ object ModuleRegistry {
         }
         modules[module.id] = module
 
-        // 如果是BaseModule且提供了Context，则注入Context
         if (context != null && module is BaseModule) {
             module.initContext(context)
         }
@@ -46,21 +45,12 @@ object ModuleRegistry {
             .toSortedMap(compareBy { ModuleCategories.getSortOrder(it) })
     }
 
-    /**
-     * 强制重置注册表。
-     * 用于在删除模块后清空缓存，以便重新加载。
-     */
     fun reset() {
         modules.clear()
         isCoreInitialized = false
     }
 
-    /**
-     * 初始化模块注册表
-     * @param context Application Context，用于注入到模块中以支持国际化
-     */
     fun initialize(context: Context) {
-        // 如果核心模块已经注册过，就不再执行 modules.clear()，防止误删用户模块
         if (isCoreInitialized) return
 
         modules.clear()
@@ -215,33 +205,33 @@ object ModuleRegistry {
         register(AppLauncherModule(), context)
         register(AutoScreenshotModule(), context)
 
+        // 拍照与分享模块
+        register(AppPhotoCaptureModule(), context)
+        register(ShareToWeChatModule(), context)
+        register(ShareToAppModule(), context)
+
         // Core (Beta) 模块
-        // 网络控制组
-        register(CoreBluetoothModule(), context)           // 蓝牙控制（开启/关闭/切换）
-        register(CoreBluetoothStateModule(), context)      // 读取蓝牙状态
-        register(CoreWifiModule(), context)                // WiFi控制（开启/关闭/切换）
-        register(CoreWifiStateModule(), context)           // 读取WiFi状态
-        register(CoreNfcModule(), context)                 // NFC控制（开启/关闭/切换）
-        register(CoreNfcStateModule(), context)            // 读取NFC状态
-        register(CoreSetClipboardModule(), context)        // 设置剪贴板
-        register(CoreGetClipboardModule(), context)        // 读取剪贴板
-        // 屏幕控制组
-        register(CoreWakeScreenModule(), context)          // 唤醒屏幕
-        register(CoreSleepScreenModule(), context)         // 关闭屏幕
-        register(CoreScreenStatusModule(), context)        // 读取屏幕状态
-        register(CoreCaptureScreenModule(), context)       // 截屏（Core）
-        // 输入交互组
-        register(CoreScreenOperationModule(), context)     // 屏幕操作（点击/滑动）
-        register(CoreUinputScreenOperationModule(), context) // 屏幕操作（uinput/Root）
-        register(CoreInputTextModule(), context)           // 输入文本
-        register(CorePressKeyModule(), context)            // 按键
-        register(CoreTouchReplayModule(), context)         // 触摸回放
-        // 应用管理组
-        register(CoreForceStopAppModule(), context)        // 强制停止应用
-        // 系统控制组
-        register(CoreShellCommandModule(), context)        // 执行命令
-        register(CoreVolumeModule(), context)              // 音量控制
-        register(CoreVolumeStateModule(), context)         // 读取音量
+        register(CoreBluetoothModule(), context)
+        register(CoreBluetoothStateModule(), context)
+        register(CoreWifiModule(), context)
+        register(CoreWifiStateModule(), context)
+        register(CoreNfcModule(), context)
+        register(CoreNfcStateModule(), context)
+        register(CoreSetClipboardModule(), context)
+        register(CoreGetClipboardModule(), context)
+        register(CoreWakeScreenModule(), context)
+        register(CoreSleepScreenModule(), context)
+        register(CoreScreenStatusModule(), context)
+        register(CoreCaptureScreenModule(), context)
+        register(CoreScreenOperationModule(), context)
+        register(CoreUinputScreenOperationModule(), context)
+        register(CoreInputTextModule(), context)
+        register(CorePressKeyModule(), context)
+        register(CoreTouchReplayModule(), context)
+        register(CoreForceStopAppModule(), context)
+        register(CoreShellCommandModule(), context)
+        register(CoreVolumeModule(), context)
+        register(CoreVolumeStateModule(), context)
 
         // Shizuku 模块
         register(ShellCommandModule(), context)
@@ -254,7 +244,6 @@ object ModuleRegistry {
         register(FindTextUntilSnippet(), context)
 
         // UI 组件模块
-        // 容器块 (Activity / 悬浮窗 / 对话框)
         register(CreateActivityModule(), context)
         register(ShowActivityModule(), context)
         register(EndActivityModule(), context)
@@ -262,14 +251,11 @@ object ModuleRegistry {
         register(ShowFloatWindowModule(), context)
         register(EndFloatWindowModule(), context)
 
-
-        // UI 组件 (文本 / 输入 / 按钮 / 开关)
         register(UiTextModule(), context)
         register(UiInputModule(), context)
         register(UiButtonModule(), context)
         register(UiSwitchModule(), context)
 
-        // 交互逻辑 (事件监听 / 更新 / 关闭 / 获取值)
         register(OnUiEventModule(), context)
         register(EndOnUiEventModule(), context)
         register(UpdateUiComponentModule(), context)
