@@ -29,7 +29,8 @@ jobs:
           gradle-version: wrapper
 
       - name: Build Debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace
+        run: ./gradlew :app:assembleArm64-v8aDebug :app:assembleX86_64Debug --stacktrace
+
 
       - name: Generate timestamp
         id: timestamp
