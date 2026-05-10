@@ -1,6 +1,9 @@
-name: Build Release APK
+name: Build and Release APK
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -28,9 +31,9 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
-      - name: Build Release APK
-        run: ./gradlew :app:assembleRelease --stacktrace
-        continue-on-error: true
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "time=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Collect APKs
         run: |
@@ -40,9 +43,32 @@ jobs:
             -exec cp "{}" release-assets/ \;
           ls -la release-assets/
 
-      - name: Upload APKs to Release
+      - name: Upload APKs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vflow-apk-${{ steps.timestamp.outputs.time }}
+          path: release-assets/
+          retention-days: 30
+
+      - name: Create or Update Release
+        id: release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0-alpha
+          tag_name: build-${{ steps.timestamp.outputs.time }}
+          name: vFlow APK Build ${{ steps.timestamp.outputs.time }}
+          body: |
+            ## 自动构建的 APK 文件
+
+            ### 下载说明
+            - **通用版**: `app-universal-debug.apk` - 适合所有设备
+            - **arm64**: `app-arm64-v8a-debug.apk` - 推荐大多数手机使用
+            - **arm32**: `app-armeabi-v7a-debug.apk` - 较旧的手机
+            - **x86_64**: `app-x86_64-debug.apk` - 64位模拟器
+
+            ---
+            自动构建于: ${{ steps.timestamp.outputs.time }}
           files: release-assets/*.apk
-          fail_on_unmatched_files: false
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
